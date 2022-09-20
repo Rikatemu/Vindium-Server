@@ -68,21 +68,41 @@ async fn main() {
                 tokio::select! {
                     // Handle incoming messages from the client
                     result = reader.read(buf.as_mut()) => {
-                        let n = result.unwrap();
-                        if n == 0 {
-                            break;
+                        match result {
+                            Ok(n) => {
+                                if n == 0 {
+                                    break;
+                                }
+        
+                                handle_read_packet(&buf[..n], tx, addr).await;
+                            },
+                            Err(e) => {
+                                println!("Error: {:?}", e);
+                                break;
+                            }
                         }
-
-                        handle_read_packet(&buf[..n], tx, addr).await;
                     }
+
                     // Handle outgoing messages to the client
                     result = rx.recv() => {
-                        let (packet, other_addr) = result.unwrap();
+                        match result {
+                            Ok(msg) => {
+                                let (packet, other_addr) = msg;
 
-                        // Do NOT send the packet back to the client that sent it
-                        if addr != other_addr {
-                            let new_packet = serde_json::to_string(&packet).unwrap();
-                            writer.write_all(new_packet.as_bytes()).await.unwrap();
+                                // Do NOT send the packet back to the client that sent it
+                                if addr != other_addr {
+                                    let new_packet = serde_json::to_string(&packet).unwrap();
+                                    let res = writer.write_all(new_packet.as_bytes()).await;
+                                    if res.is_err() {
+                                        println!("Error: {:?}", res.err().unwrap());
+                                        break;
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                println!("Error: {:?}", e);
+                                break;
+                            }
                         }
                     }
                 }

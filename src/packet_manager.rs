@@ -2,13 +2,13 @@ use serde::{Serialize, Deserialize};
 
 use crate::types::{TransformPosition, TransformRotation};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum PacketType {
     Transform,
     Entity,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Packet {
     pub sender: String,
     pub ptype: PacketType,

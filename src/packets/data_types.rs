@@ -2,21 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::types::{TransformPosition, TransformRotation};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Packet {
-    pub sender: String,
-    pub ptype: PacketType,
-    pub data: String
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub enum PacketType {
-    Transform,
-    Accept,
-}
-
 // Packet data types ----------------------------------------------
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AcceptData {
     pub accepted: bool,
@@ -25,7 +11,14 @@ pub struct AcceptData {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct NetworkTransformData {
+pub struct TransformData {
+    pub entity_id: String,
+    pub position: TransformPosition,
+    pub rotation: TransformRotation,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SpawnData {
     pub entity_id: String,
     pub position: TransformPosition,
     pub rotation: TransformRotation,

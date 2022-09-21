@@ -1,11 +1,11 @@
 use crate::types::{TransformPosition, TransformRotation};
 
-use super::packet_manager::{NetworkTransformData, Packet};
+use super::{data_types::TransformData, packet::Packet};
 
-pub async fn handle_transform(packet: Packet) -> NetworkTransformData {
-    let data: NetworkTransformData = serde_json::from_str(&packet.data).unwrap_or_else(|e| {
+pub async fn read_transform(packet: Packet) -> TransformData {
+    let data: TransformData = serde_json::from_str(&packet.data).unwrap_or_else(|e| {
         println!("Error: {:?}", e);
-        NetworkTransformData {
+        TransformData {
             entity_id: "0".to_string(),
             position: TransformPosition {
                 x: 0.0,

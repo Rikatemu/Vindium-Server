@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use tokio::{net::TcpStream, sync::broadcast::{Sender, Receiver}, io::{AsyncWriteExt, AsyncReadExt}};
 
-use crate::{packets::{packet::Packet, data_types::AcceptData}, helper::generate_entity_id, read::handle_read_packet};
+use crate::{packets::{packet::Packet, data_types::{AcceptData, SpawnData}}, helper::generate_entity_id, read::handle_read_packet, config::{SPAWN_POINT, SPAWN_POINT_ROT}};
 
 type Buffer = [u8; 1024];
 
@@ -18,11 +18,16 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
         // Generate a random ID for the client entity
         let entity_id = generate_entity_id().await;
 
-        // Send the client their entity ID and accept the connection
+        // Send the client their spawn data and accept the connection
         let accept_data: AcceptData = AcceptData {
             accepted: true,
-            entity_id,
-            err_message: "".to_string()
+            entity_id: entity_id.clone(),
+            err_message: "".to_string(),
+            spawn_data: SpawnData {
+                entity_id: entity_id.clone(),
+                position: SPAWN_POINT,
+                rotation: SPAWN_POINT_ROT
+            },
         };
 
         // Send accept message
@@ -55,10 +60,29 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
                         Ok(msg) => {
                             let (packet, other_addr) = msg;
 
-                            // Do NOT send the packet back to the client that sent it
-                            if addr != other_addr {
-                                let new_packet = serde_json::to_string(&packet).unwrap();
-                                let res = writer.write_all(new_packet.as_bytes()).await;
+                            /*
+                            * TODO: Refactor this ugly thing
+                            * If the packet is not meant to be sent back to the sender,
+                            * don't send it back to the sender address
+                            */
+                            if packet.send_back {
+                                if packet.owner_only {
+                                    if packet.sender == addr.to_string() {
+                                        let res = writer.write_all(serde_json::to_string(&packet).unwrap().as_bytes()).await;
+                                        if res.is_err() {
+                                            println!("Error: {:?}", res.err().unwrap());
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    let res = writer.write_all(serde_json::to_string(&packet).unwrap().as_bytes()).await;
+                                    if res.is_err() {
+                                        println!("Error: {:?}", res.err().unwrap());
+                                        break;
+                                    }
+                                }
+                            } else if other_addr != addr {
+                                let res = writer.write_all(serde_json::to_string(&packet).unwrap().as_bytes()).await;
                                 if res.is_err() {
                                     println!("Error: {:?}", res.err().unwrap());
                                     break;

@@ -1,16 +1,18 @@
+pub mod config;
 pub mod types;
 pub mod packets;
 pub mod read;
 pub mod helper;
 pub mod client;
 
+use config::SERVER_PORT;
 use tokio::{net::TcpListener, sync::broadcast};
 
 use crate::client::handle_client;
 
 #[tokio::main]
 async fn main() {
-    let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap_or_else(|e| {
+    let listener = TcpListener::bind("127.0.0.1:".to_owned() + SERVER_PORT).await.unwrap_or_else(|e| {
         println!("Error: {:?}", e);
         panic!("Failed to bind to address");
     });

@@ -18,9 +18,22 @@ pub async fn handle_read_packet(
                     let data = read_transform(packet).await;
 
                     let new_packet = Packet {
-                        sender: data.entity_id.clone(),
+                        sender: addr.to_string(),
                         ptype: PacketType::Transform,
-                        data: serde_json::to_string(&data).unwrap()
+                        data: serde_json::to_string(&data).unwrap(),
+                        send_back: false,
+                        owner_only: false
+                    };
+
+                    tx.send((new_packet, addr)).unwrap();
+                },
+                PacketType::Ping => {
+                    let new_packet = Packet {
+                        sender: addr.to_string(),
+                        ptype: PacketType::Ping,
+                        data: "".to_string(),
+                        send_back: true,
+                        owner_only: true
                     };
 
                     tx.send((new_packet, addr)).unwrap();

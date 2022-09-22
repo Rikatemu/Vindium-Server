@@ -12,9 +12,6 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
         // Split socket to reader and writer
         let (mut reader, mut writer) = socket.split();
 
-        // Create a buffer to store the data
-        let mut buf: Buffer = [0; 1024];
-
         // Generate a random ID for the client entity
         let entity_id = generate_entity_id().await;
 
@@ -35,6 +32,7 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
 
         // Loop for handling of incoming and outgoing messages
         loop {
+            let mut buf: Buffer = [0; 1024];
             let tx = tx.clone();
             tokio::select! {
                 // Handle incoming messages from the client

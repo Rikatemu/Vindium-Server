@@ -28,7 +28,7 @@ pub async fn handle_read_packet(
 
                     let res = tx.send((new_packet, addr));
                     match res {
-                        Ok(_) => {},
+                        Ok(_) => return,
                         Err(e) => {
                             println!("Error: {:?}", e);
                             return;
@@ -46,21 +46,19 @@ pub async fn handle_read_packet(
 
                     let res = tx.send((new_packet, addr));
                     match res {
-                        Ok(_) => {},
+                        Ok(_) => return,
                         Err(e) => {
                             println!("Error: {:?}", e);
                             return;
                         }
                     }
                 },
-                _ => {}
+                _ => return
             }
         },
         Err(e) => {
-            println!("Error: {:?}", e);
+            println!("Serde Error: {:?}", e);
             return;
         }
     }
-
-    return;
 }

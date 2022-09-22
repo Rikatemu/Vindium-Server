@@ -42,14 +42,14 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
                     match result {
                         Ok(n) => {
                             if n == 0 {
-                                break;
+                                continue;
                             }
 
                             handle_read_packet(&buf[..n], tx, addr).await;
                         },
                         Err(e) => {
                             println!("Error: {:?}", e);
-                            break;
+                            continue;
                         }
                     }
                 }
@@ -71,27 +71,27 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
                                         let res = writer.write_all(serde_json::to_string(&packet).unwrap().as_bytes()).await;
                                         if res.is_err() {
                                             println!("Error: {:?}", res.err().unwrap());
-                                            break;
+                                            continue;
                                         }
                                     }
                                 } else {
                                     let res = writer.write_all(serde_json::to_string(&packet).unwrap().as_bytes()).await;
                                     if res.is_err() {
                                         println!("Error: {:?}", res.err().unwrap());
-                                        break;
+                                        continue;
                                     }
                                 }
                             } else if other_addr != addr {
                                 let res = writer.write_all(serde_json::to_string(&packet).unwrap().as_bytes()).await;
                                 if res.is_err() {
                                     println!("Error: {:?}", res.err().unwrap());
-                                    break;
+                                    continue;
                                 }
                             }
                         }
                         Err(e) => {
                             println!("Error: {:?}", e);
-                            break;
+                            continue;
                         }
                     }
                 }

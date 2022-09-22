@@ -12,7 +12,7 @@ use crate::client::handle_client;
 
 #[tokio::main]
 async fn main() {
-    let listener = TcpListener::bind("127.0.0.1:".to_owned() + SERVER_PORT).await.unwrap_or_else(|e| {
+    let listener = TcpListener::bind("0.0.0.0:".to_owned() + SERVER_PORT).await.unwrap_or_else(|e| {
         println!("Error: {:?}", e);
         panic!("Failed to bind to address");
     });

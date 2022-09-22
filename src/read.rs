@@ -1,6 +1,6 @@
 use tokio::sync::broadcast;
 
-use crate::packets::{packet::{Packet, PacketType}, packet_handler::read_transform};
+use crate::packets::{packet::Packet, packet_reader::read_transform, data_types::PacketDataType};
 
 // Packet reading and packet type handling
 pub async fn handle_read_packet(
@@ -14,12 +14,12 @@ pub async fn handle_read_packet(
     match packet {
         Ok(packet) => {
             match packet.ptype {
-                PacketType::Transform => {
+                PacketDataType::Transform => {
                     let data = read_transform(packet).await;
 
                     let new_packet = Packet {
                         sender: addr.to_string(),
-                        ptype: PacketType::Transform,
+                        ptype: PacketDataType::Transform,
                         data: serde_json::to_string(&data).unwrap(),
                         send_back: false,
                         owner_only: false
@@ -27,10 +27,10 @@ pub async fn handle_read_packet(
 
                     tx.send((new_packet, addr)).unwrap();
                 },
-                PacketType::Ping => {
+                PacketDataType::Ping => {
                     let new_packet = Packet {
                         sender: addr.to_string(),
-                        ptype: PacketType::Ping,
+                        ptype: PacketDataType::Ping,
                         data: "".to_string(),
                         send_back: true,
                         owner_only: true

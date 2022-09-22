@@ -2,6 +2,16 @@ use serde::{Serialize, Deserialize};
 
 use crate::types::{Vector3, Quaternion};
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub enum PacketDataType {
+    Accept,
+    Transform,
+    Spawn,
+    Disconnect,
+    Ping,
+    Chat
+}
+
 // Packet data types ----------------------------------------------
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AcceptData {

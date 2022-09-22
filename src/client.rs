@@ -4,7 +4,7 @@ use tokio::{net::TcpStream, sync::broadcast::{Sender, Receiver}, io::{AsyncWrite
 
 use crate::{packets::{packet::Packet, data_types::{AcceptData, SpawnData}}, helper::generate_entity_id, read::handle_read_packet, config::{SPAWN_POINT, SPAWN_POINT_ROT}};
 
-type Buffer = [u8; 4096];
+type Buffer = [u8; 1024];
 
 pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(Packet, SocketAddr)>, mut rx: Receiver<(Packet, SocketAddr)>) {
     // Spawn a new task to handle the client connection
@@ -13,7 +13,7 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
         let (mut reader, mut writer) = socket.split();
 
         // Create a buffer to store the data
-        let mut buf: Buffer = [0; 4096];
+        let mut buf: Buffer = [0; 1024];
 
         // Generate a random ID for the client entity
         let entity_id = generate_entity_id().await;

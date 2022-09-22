@@ -8,6 +8,7 @@ pub async fn handle_read_packet(
     tx: broadcast::Sender<(Packet, std::net::SocketAddr)>,
     addr: std::net::SocketAddr
 ) {
+    // TODO: Refactor duplicate code for sending packets to channel
     // Parse bytes to JSON string and then to Packet struct
     let packet_string = String::from_utf8_lossy(&packet_bytes);
     let packet: Result<Packet, serde_json::Error> = serde_json::from_str(&packet_string);
@@ -25,7 +26,14 @@ pub async fn handle_read_packet(
                         owner_only: false
                     };
 
-                    tx.send((new_packet, addr)).unwrap();
+                    let res = tx.send((new_packet, addr));
+                    match res {
+                        Ok(_) => {},
+                        Err(e) => {
+                            println!("Error: {:?}", e);
+                            return;
+                        }
+                    }
                 },
                 PacketDataType::Ping => {
                     let new_packet = Packet {
@@ -36,13 +44,23 @@ pub async fn handle_read_packet(
                         owner_only: true
                     };
 
-                    tx.send((new_packet, addr)).unwrap();
+                    let res = tx.send((new_packet, addr));
+                    match res {
+                        Ok(_) => {},
+                        Err(e) => {
+                            println!("Error: {:?}", e);
+                            return;
+                        }
+                    }
                 },
                 _ => {}
             }
         },
         Err(e) => {
             println!("Error: {:?}", e);
+            return;
         }
     }
+
+    return;
 }

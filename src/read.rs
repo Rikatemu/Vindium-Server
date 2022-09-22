@@ -10,9 +10,9 @@ pub async fn handle_read_packet(
 ) {
     // TODO: Refactor duplicate code for sending packets to channel
     // Parse bytes to JSON string and then to Packet struct
-    let ps_result = String::from_utf8(packet_bytes.to_vec());
+    let ps_result = std::str::from_utf8(packet_bytes);
 
-    let mut packet_string = match ps_result {
+    let packet_string = match ps_result {
         Ok(s) => s,
         Err(e) => {
             println!("Error: {:?}", e);
@@ -20,9 +20,7 @@ pub async fn handle_read_packet(
         }
     };
 
-    packet_string = packet_string.trim_end_matches(char::from(0)).to_string();
-
-    let packet: Result<Packet, serde_json::Error> = serde_json::from_str(&packet_string);
+    let packet: Result<Packet, serde_json::Error> = serde_json::from_str(packet_string);
     match packet {
         Ok(packet) => {
             match packet.ptype {

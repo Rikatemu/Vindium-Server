@@ -36,6 +36,11 @@ pub struct SpawnData {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct DisconnectData {
+    pub entity_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PingData {
     pub entity_id: String,
     pub ping_code: String,

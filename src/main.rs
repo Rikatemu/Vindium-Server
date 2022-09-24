@@ -17,6 +17,8 @@ async fn main() {
         panic!("Failed to bind to address");
     });
 
+    println!("Server started on port {}", SERVER_PORT);
+
     // Create a channel to send messages to all clients
     let (tx, _rx) = broadcast::channel(10);
 

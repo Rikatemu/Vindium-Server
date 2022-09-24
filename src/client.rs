@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 
-use tokio::{net::TcpStream, sync::broadcast::{Sender, Receiver}, io::{AsyncWriteExt, AsyncReadExt}};
+use tokio::{net::TcpStream, sync::broadcast::{Sender, Receiver}, io::{AsyncWriteExt, AsyncReadExt}, time::sleep};
 
-use crate::{packets::{packet::Packet, data_types::{AcceptData, SpawnData, DisconnectData, PacketDataType}}, helper::generate_entity_id, read::handle_read_packet, config::{SPAWN_POINT, SPAWN_POINT_ROT}};
+use crate::{packets::{packet::Packet, data_types::{AcceptData, SpawnData, DisconnectData, PacketDataType}}, helper::generate_entity_id, read::handle_read_packet, config::{SPAWN_POINT, SPAWN_POINT_ROT, MIN_TICK_LENGTH_MS}};
 
 pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(Packet, SocketAddr)>, mut rx: Receiver<(Packet, SocketAddr)>) {
     // Spawn a new task to handle the client connection
@@ -54,6 +54,8 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
 
         // Loop for handling of incoming and outgoing messages
         loop {
+            let time_tick_start = tokio::time::Instant::now();
+
             let mut buf: [u8; 4096]  = [0; 4096];
             let tx = tx.clone();
             tokio::select! {
@@ -138,6 +140,12 @@ pub async fn handle_client(mut socket: TcpStream, addr: SocketAddr, tx: Sender<(
                         }
                     }
                 }
+            }
+
+            // Sleep for the remaining time of the tick
+            let time_elapsed = time_tick_start.elapsed();
+            if time_elapsed < MIN_TICK_LENGTH_MS {
+                sleep(MIN_TICK_LENGTH_MS - time_elapsed).await;
             }
         }
     });

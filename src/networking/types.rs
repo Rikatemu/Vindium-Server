@@ -2,13 +2,14 @@ use std::collections::HashMap;
 
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+use crate::ai::behaviours::AiBehaviourType;
+
+#[derive(Serialize, Deserialize, Debug, Clone, Hash)]
+#[derive(Eq, PartialEq)]
 pub enum EntityType {
     Player,
-    Npc,
-    Item,
-    Projectile,
-    Vehicle
+    Ai,
+    Other,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -18,6 +19,26 @@ pub struct Entity {
     pub owner: String,
     pub pos: Vector3,
     pub rot: Quaternion,
+    pub ai_data: Option<AiEntityData>,
+}
+
+impl Entity {
+    pub fn clone(self) -> Entity {
+        Entity {
+            id: self.id,
+            entity_type: self.entity_type,
+            owner: self.owner,
+            pos: self.pos,
+            rot: self.rot,
+            ai_data: self.ai_data,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AiEntityData {
+    pub processor_id: u8,
+    pub behaviour: AiBehaviourType,
 }
 
 pub type Entities = HashMap<String,Entity>;

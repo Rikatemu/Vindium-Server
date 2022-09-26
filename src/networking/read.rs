@@ -1,6 +1,8 @@
+use crate::networking::packets::packet_reader::read_transform;
+use crate::networking::packets::packet::Packet;
 use tokio::sync::broadcast;
 
-use crate::packets::{packet::Packet, packet_reader::read_transform, data_types::PacketDataType};
+use super::packets::data_types::PacketDataType;
 
 // Packet reading and packet type handling
 pub async fn handle_read_packet(

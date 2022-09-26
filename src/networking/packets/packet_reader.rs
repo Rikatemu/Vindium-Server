@@ -1,4 +1,4 @@
-use crate::types::{Vector3, Quaternion};
+use crate::networking::types::{Vector3, Quaternion};
 
 use super::{data_types::TransformData, packet::Packet};
 

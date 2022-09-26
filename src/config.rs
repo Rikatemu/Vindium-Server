@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::types::{Vector3, Quaternion};
+use crate::networking::types::{Vector3, Quaternion};
 
 pub const SERVER_PORT: &str = "8080";
 

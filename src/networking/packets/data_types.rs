@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::types::{Vector3, Quaternion};
+use crate::networking::types::{Vector3, Quaternion};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum PacketDataType {

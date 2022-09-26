@@ -8,12 +8,12 @@ A very basic game server written in [Rust](https://www.rust-lang.org/) utilizing
 # Features
 - [x] Client-authoritative movement
 - [x] Client-side movement interpolation
-- [ ] Entity state sync
+- [x] Multithreaded AI behaviour processors
+- [x] AI behaviour controller
+- [x] AI pathfinding
 - [ ] Child transform sync
 - [ ] Authentication
 - [ ] Spatial hashing interest management
 - [ ] Map interest management
 - [ ] Teleport/speed hack checker (No server-authoritative movement planned)
-- [ ] AI behaviour controller
-- [ ] AI pathfinding
 - [ ] Control plane (one game world processed by multiple server instances to handle large amounts of entities)

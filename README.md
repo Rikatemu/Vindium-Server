@@ -10,7 +10,7 @@ A very basic game server written in [Rust](https://www.rust-lang.org/) utilizing
 - [x] Client-side movement interpolation
 - [x] Multithreaded AI behaviour processors
 - [x] AI behaviour controller
-- [x] AI pathfinding
+- [ ] AI pathfinding
 - [ ] Child transform sync
 - [ ] Authentication
 - [ ] Spatial hashing interest management

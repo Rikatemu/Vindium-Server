@@ -20,3 +20,5 @@ pub const SPAWN_POINT_ROT: Quaternion = Quaternion {
 // 30 ticks per 1 second - 33.3333ms per tick (1000 / 30)
 pub const TICK_RATE: u64 = 30;
 pub const MIN_TICK_LENGTH_MS: Duration = Duration::from_millis(1000 / TICK_RATE);
+
+pub const BUFFER_SIZE: usize = 2048;

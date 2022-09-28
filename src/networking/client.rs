@@ -1,14 +1,14 @@
-use crate::networking::packets::{
+use crate::{networking::packets::{
     data_types::{DisconnectData, SpawnData, AcceptData}, 
     packet::Packet
-};
+}, config::BUFFER_SIZE};
 use crate::config::MIN_TICK_LENGTH_MS;
 use crate::networking::read::handle_read_packet;
 use crate::config::{SPAWN_POINT, SPAWN_POINT_ROT};
-use crate::networking::helper::generate_entity_id;
+use crate::networking::helper::generate_id;
 use std::{net::SocketAddr, collections::HashMap, sync::Arc};
 
-use tokio::{net::TcpStream, sync::{broadcast::{Sender, Receiver}, Mutex}, io::{AsyncWriteExt, AsyncReadExt}, time::sleep};
+use tokio::{net::{TcpStream, UdpSocket}, sync::{broadcast::{Sender, Receiver}, Mutex}, io::{AsyncWriteExt, AsyncReadExt}, time::sleep};
 
 use super::{packets::data_types::PacketDataType, types::{Entity, EntityType}};
 
@@ -17,15 +17,20 @@ pub async fn handle_client(
     addr: SocketAddr, 
     tx: Sender<(Packet, SocketAddr)>, 
     mut rx: Receiver<(Packet, SocketAddr)>,
-    entities: Arc<Mutex<HashMap<EntityType, HashMap<String, Entity>>>>
+    connections: Arc<Mutex<HashMap<String, SocketAddr>>>,
+    entities: Arc<Mutex<HashMap<EntityType, HashMap<String, Entity>>>>,
+    latest_udp_packet: Arc<Mutex<Packet>>,
+    udp_socket: Arc<UdpSocket>
 ) {
-    // Spawn a new task to handle the client connection
+    let conns = connections.clone();
+    // Spawn a new task to handle the client TCP connection
     tokio::spawn(async move {
         // Split socket to reader and writer
         let (mut reader, mut writer) = socket.split();
 
         // Create player entity
-        let entity_id = generate_entity_id().await;
+        let connection_id = generate_id().await;
+        let entity_id = generate_id().await;
 
         let player_entity = Entity {
             id: entity_id.clone(),
@@ -35,6 +40,12 @@ pub async fn handle_client(
             rot: SPAWN_POINT_ROT,
             ai_data: None
         };
+
+        // Add player connection to connections hashmap
+        let mut connections_lock = conns.lock().await;
+        connections_lock.insert(connection_id.clone(), addr);
+        // Drop lock otherwise it will be held until the end of the function which happens on client disconnection
+        drop(connections_lock);
 
         // Add player entity to player entities hashmap
         let mut entities_lock = entities.lock().await;
@@ -87,7 +98,7 @@ pub async fn handle_client(
         loop {
             let time_tick_start = tokio::time::Instant::now();
 
-            let mut buf: [u8; 4096]  = [0; 4096];
+            let mut buf  = [0u8; BUFFER_SIZE];
             let tx = tx.clone();
             tokio::select! {
                 // Handle incoming messages from the client
@@ -100,6 +111,12 @@ pub async fn handle_client(
                                 let disconnect_data = DisconnectData {
                                     entity_id: entity_id.clone()
                                 };
+
+                                // Remove player connection from connections hashmap
+                                let conns = conns.clone();
+                                let mut connections_lock = conns.lock().await;
+                                connections_lock.remove(&connection_id);
+                                drop(connections_lock);
 
                                 // Remove player entity from player entities hashmap
                                 let mut entities_lock = entities.lock().await;
@@ -179,6 +196,42 @@ pub async fn handle_client(
                 }
             }
 
+            // Sleep for the remaining time of the tick
+            let time_elapsed = time_tick_start.elapsed();
+            if time_elapsed < MIN_TICK_LENGTH_MS {
+                sleep(MIN_TICK_LENGTH_MS - time_elapsed).await;
+            }
+        }
+    });
+
+    let connections = connections.clone();
+    let mut last_udp_packet_string: String = String::new();
+    // Spawn a task to handle client UDP connection
+    tokio::spawn(async move {
+        loop {
+            let time_tick_start = tokio::time::Instant::now();
+
+            let connections = connections.clone();
+            let latest_udp_packet_lock = latest_udp_packet.lock().await;
+            let latest_udp_packet = latest_udp_packet_lock.clone();
+            drop(latest_udp_packet_lock);
+            let packet_string = serde_json::to_string(&latest_udp_packet).unwrap();
+            if packet_string == last_udp_packet_string {
+                continue;
+            }
+            last_udp_packet_string = packet_string.clone();
+            let packet_bytes = packet_string.as_bytes();
+    
+            let broadcast_connections_lock = connections.lock().await;
+            let broadcast_connections = broadcast_connections_lock.clone();
+            drop(broadcast_connections_lock);
+    
+            for (_connection_id, addr) in broadcast_connections.iter() {
+                if addr.to_string() != latest_udp_packet.sender {
+                    udp_socket.send_to(packet_bytes, addr).await.unwrap();
+                }
+            }
+    
             // Sleep for the remaining time of the tick
             let time_elapsed = time_tick_start.elapsed();
             if time_elapsed < MIN_TICK_LENGTH_MS {

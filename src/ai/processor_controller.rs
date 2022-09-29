@@ -6,7 +6,7 @@ use crate::networking::{types::{EntityType, Entity}, packets::packet::Packet};
 
 use super::processor;
 
-pub const NUMBER_OF_PROCESSORS: u8 = 10;
+pub const NUMBER_OF_PROCESSORS: u8 = 1;
 pub const AI_ENTITIES_PER_PROCESSOR: u8 = 100;
 
 // Initialize AI processors on separate threads

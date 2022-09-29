@@ -41,6 +41,8 @@ pub async fn run(
         let time_elapsed = time_tick_start.elapsed();
         if time_elapsed < MIN_TICK_LENGTH_MS {
             sleep(MIN_TICK_LENGTH_MS - time_elapsed).await;
+        } else {
+            println!("AI processor {} - tick took too long! {}ms", processor_id, time_elapsed.as_millis());
         }
     }
 }
